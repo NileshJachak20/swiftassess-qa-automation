@@ -1,0 +1,161 @@
+# SwiftAssess Test Configuration
+
+# Application URLs
+urls:
+  production: "https://app.swiftassess.com/Signup"
+  staging: "https://app-stg.swiftassess.com/Signup"
+  base_url: "https://app.swiftassess.com"
+
+# Browser Configuration
+browsers:
+  chrome:
+    headless: false
+    window_size: [1920, 1080]
+    options:
+      - "--no-sandbox"
+      - "--disable-dev-shm-usage"
+      - "--disable-gpu"
+      - "--disable-extensions"
+      - "--disable-logging"
+      - "--disable-web-security"
+      - "--allow-running-insecure-content"
+  
+  firefox:
+    headless: false
+    window_size: [1920, 1080]
+    options:
+      - "--no-sandbox"
+      - "--disable-dev-shm-usage"
+  
+  edge:
+    headless: false
+    window_size: [1920, 1080]
+    options:
+      - "--no-sandbox"
+      - "--disable-dev-shm-usage"
+
+# Mobile Device Configuration
+mobile_devices:
+  iphone_12:
+    device_name: "iPhone 12"
+    platform_name: "iOS"
+    platform_version: "15.0"
+    browser_name: "Safari"
+    viewport: [390, 844]
+  
+  samsung_galaxy:
+    device_name: "Samsung Galaxy S21"
+    platform_name: "Android"
+    platform_version: "11.0"
+    browser_name: "Chrome"
+    viewport: [360, 800]
+  
+  ipad:
+    device_name: "iPad"
+    platform_name: "iOS"
+    platform_version: "15.0"
+    browser_name: "Safari"
+    viewport: [768, 1024]
+
+# Test Data Configuration
+test_data:
+  valid_users:
+    - first_name: "John"
+      last_name: "Doe"
+      email: "john.doe@example.com"
+      password: "SecurePass123!"
+      confirm_password: "SecurePass123!"
+    
+    - first_name: "Jane"
+      last_name: "Smith"
+      email: "jane.smith@example.com"
+      password: "TestPass456@"
+      confirm_password: "TestPass456@"
+  
+  invalid_users:
+    - first_name: ""
+      last_name: "Doe"
+      email: "invalid-email"
+      password: "123"
+      confirm_password: "456"
+      expected_errors: ["First name is required", "Invalid email format", "Password too weak"]
+    
+    - first_name: "Test"
+      last_name: ""
+      email: "test@example.com"
+      password: "password"
+      confirm_password: "different"
+      expected_errors: ["Last name is required", "Passwords do not match"]
+
+# Load Testing Configuration
+load_testing:
+  baseline:
+    users: 10
+    duration: "5m"
+    ramp_up: "1m"
+  
+  stress:
+    users: 500
+    duration: "10m"
+    ramp_up: "2m"
+  
+  spike:
+    users: 1000
+    duration: "5m"
+    ramp_up: "30s"
+
+# Performance Thresholds
+performance_thresholds:
+  response_time:
+    p50: 1000  # 1 second
+    p95: 2000  # 2 seconds
+    p99: 3000  # 3 seconds
+  
+  throughput:
+    min: 100   # requests per second
+  
+  error_rate:
+    max: 1     # percentage
+
+# Retry Configuration
+retry:
+  max_attempts: 3
+  delay: 1
+  backoff: 2
+
+# Screenshot Configuration
+screenshots:
+  on_failure: true
+  on_success: false
+  directory: "screenshots"
+  format: "png"
+
+# Reporting Configuration
+reporting:
+  html:
+    title: "SwiftAssess Test Report"
+    theme: "standard"
+  
+  allure:
+    title: "SwiftAssess Test Results"
+    environment:
+      browser: "Chrome"
+      version: "Latest"
+      os: "Windows 10"
+
+# CI/CD Configuration
+ci_cd:
+  pipeline:
+    stages:
+      - checkout
+      - setup
+      - functional_tests
+      - device_tests
+      - load_tests
+      - report_generation
+  
+  notifications:
+    email:
+      on_success: true
+      on_failure: true
+      recipients: ["qa-team@company.com"]

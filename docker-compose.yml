@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # Selenium Grid Hub
+  selenium-hub:
+    image: selenium/hub:4.15.0
+    container_name: selenium-hub
+    ports:
+      - "4444:4444"
+      - "4442:4442"
+    environment:
+      - GRID_MAX_SESSION=16
+      - GRID_BROWSER_TIMEOUT=300
+      - GRID_TIMEOUT=300
+    networks:
+      - selenium-grid
+
+  # Chrome Node
+  selenium-chrome:
+    image: selenium/node-chrome:4.15.0
+    container_name: selenium-chrome
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=4
+      - NODE_MAX_SESSION=4
+    volumes:
+      - /dev/shm:/dev/shm
+    networks:
+      - selenium-grid
+
+  # Firefox Node
+  selenium-firefox:
+    image: selenium/node-firefox:4.15.0
+    container_name: selenium-firefox
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=4
+      - NODE_MAX_SESSION=4
+    volumes:
+      - /dev/shm:/dev/shm
+    networks:
+      - selenium-grid
+
+  # Test Runner
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: test-runner
+    depends_on:
+      - selenium-hub
+      - selenium-chrome
+      - selenium-firefox
+    environment:
+      - SELENIUM_HUB_URL=http://selenium-hub:4444/wd/hub
+      - TEST_ENV=staging
+      - BROWSER=chrome
+      - HEADLESS=false
+    volumes:
+      - ./tests:/app/tests
+      - ./reports:/app/reports
+      - ./screenshots:/app/screenshots
+      - ./config:/app/config
+    networks:
+      - selenium-grid
+    command: pytest tests/functional/ -v --html=reports/functional_test_report.html --self-contained-html
+
+  # K6 Load Testing
+  k6-runner:
+    image: grafana/k6:latest
+    container_name: k6-runner
+    volumes:
+      - ./tests/load:/scripts
+      - ./reports:/reports
+    command: k6 run /scripts/load_test_baseline.js
+
+networks:
+  selenium-grid:
+    driver: bridge
+
+volumes:
+  selenium-data:

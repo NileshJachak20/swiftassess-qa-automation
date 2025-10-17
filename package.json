@@ -1,0 +1,56 @@
+{
+  "name": "swiftassess-qa-automation",
+  "version": "1.0.0",
+  "description": "QA Automation and Load Testing for SwiftAssess Signup Page",
+  "main": "index.js",
+  "scripts": {
+    "test": "pytest tests/ -v",
+    "test:functional": "pytest tests/functional/ -v",
+    "test:device": "pytest tests/device/ -v",
+    "test:smoke": "pytest tests/ -m smoke -v",
+    "test:regression": "pytest tests/ -m regression -v",
+    "load:baseline": "k6 run tests/load/load_test_baseline.js",
+    "load:stress": "k6 run tests/load/load_test_stress.js",
+    "load:spike": "k6 run tests/load/load_test_spike.js",
+    "load:all": "npm run load:baseline && npm run load:stress && npm run load:spike",
+    "report:allure": "allure serve reports/allure-results",
+    "report:html": "pytest tests/ --html=reports/functional_test_report.html --self-contained-html",
+    "setup": "pip install -r requirements.txt && npm install",
+    "clean": "rm -rf reports/* screenshots/* test_data/*",
+    "lint": "pylint tests/",
+    "format": "black tests/",
+    "ci:functional": "pytest tests/functional/ --html=reports/functional_test_report.html --self-contained-html --json-report --json-report-file=reports/functional_results.json",
+    "ci:device": "pytest tests/device/ --html=reports/device_test_report.html --self-contained-html --json-report --json-report-file=reports/device_results.json",
+    "ci:load": "npm run load:all"
+  },
+  "keywords": [
+    "qa",
+    "automation",
+    "testing",
+    "selenium",
+    "pytest",
+    "k6",
+    "load-testing",
+    "swiftassess"
+  ],
+  "author": "QA Automation Team",
+  "license": "MIT",
+  "devDependencies": {
+    "k6": "^0.0.0"
+  },
+  "dependencies": {
+    "allure-commandline": "^2.20.1"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/company/swiftassess-qa-automation.git"
+  },
+  "bugs": {
+    "url": "https://github.com/company/swiftassess-qa-automation/issues"
+  },
+  "homepage": "https://github.com/company/swiftassess-qa-automation#readme"
+}
