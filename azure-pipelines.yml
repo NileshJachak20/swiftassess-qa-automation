@@ -26,7 +26,8 @@ variables:
   headless: 'true'
   
 pool:
-  vmImage: 'windows-latest'
+  name: 'Default'  # Use self-hosted agent
+  # vmImage: 'windows-latest'  # Use this after getting parallelism grant
 
 stages:
   # ============================================================================
