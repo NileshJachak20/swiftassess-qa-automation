@@ -37,7 +37,8 @@ pyyaml==6.0.1
 jsonschema==4.20.0
 
 # Mobile Testing
-appium-python-client==3.1.0
+# Note: appium-python-client removed due to Windows path length issues
+# It's not needed for web application testing (only for native mobile apps)
 
 # Performance Monitoring
 psutil==5.9.6
