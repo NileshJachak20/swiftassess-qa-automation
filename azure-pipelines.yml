@@ -42,23 +42,25 @@ stages:
           - checkout: self
             displayName: 'Checkout Source Code'
             
-          - task: UsePythonVersion@0
-            displayName: 'Use Python $(pythonVersion)'
-            inputs:
-              versionSpec: '$(pythonVersion)'
-              addToPath: true
-              
-          - task: NodeTool@0
-            displayName: 'Use Node.js $(nodeVersion)'
-            inputs:
-              versionSpec: '$(nodeVersion)'
+          # For self-hosted agents, use pre-installed Python and Node.js
+          # Comment these out if using Microsoft-hosted agents after grant approval
+          # - task: UsePythonVersion@0
+          #   displayName: 'Use Python $(pythonVersion)'
+          #   inputs:
+          #     versionSpec: '$(pythonVersion)'
+          #     addToPath: true
+          #     
+          # - task: NodeTool@0
+          #   displayName: 'Use Node.js $(nodeVersion)'
+          #   inputs:
+          #     versionSpec: '$(nodeVersion)'
               
           - script: |
               python --version
               pip --version
               node --version
               npm --version
-            displayName: 'Display Versions'
+            displayName: 'Display Versions (Using Pre-installed Tools)'
             
           - script: |
               python -m pip install --upgrade pip
