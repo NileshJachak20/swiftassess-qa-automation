@@ -1,140 +1,228 @@
 # SwiftAssess Signup Page - QA Automation & Load Testing
 
 ## Project Overview
-This project provides comprehensive QA automation and load testing for the SwiftAssess signup page, including functional testing, device testing, and performance testing scenarios.
+End-to-end QA automation and performance testing for `https://app.swiftassess.com/Signup`, including functional UI tests (Selenium + Pytest), device/cross-browser checks, and k6-based load tests (baseline, stress, spike). CI/CD is wired through a Jenkins pipeline with artifacted reports.
 
-## Project Structure
+## Project Structure (folder-by-folder)
 ```
 project/
-├── docs/
-│   ├── TestPlan.md
-│   ├── TestReport.md
-│   └── LoadTestReport.md
-├── tests/
-│   ├── functional/
-│   │   ├── pages/
-│   │   ├── tests/
-│   │   └── utils/
-│   ├── device/
-│   └── load/
+├── docs/                         # Project documentation and deliverables
+│   ├── TestPlan.md               # Scope, strategy, entry/exit, risks
+│   ├── TestReport.md             # Narrative functional report (human-friendly)
+│   └── LoadTestReport.md         # Narrative load test report
+│
+├── tests/                        # All automated test code
+│   ├── functional/               # UI tests (Pytest + Selenium, POM)
+│   │   ├── pages/                # Page Objects (encapsulate locators/actions)
+│   │   │   └── signup_page.py
+│   │   ├── tests/                # Test cases
+│   │   │   └── test_signup_functional.py
+│   │   └── utils/                # Helpers (driver, waits, data, retry, shots)
+│   │       ├── base_page.py
+│   │       └── test_helpers.py
+│   │
+│   ├── device/                   # Cross-device/cross-browser/responsive tests
+│   │   └── test_device_compatibility.py
+│   │
+│   └── load/                     # k6 load testing scripts
+│       ├── load_test_baseline.js # 10 users
+│       ├── load_test_stress.js   # 500 users
+│       └── load_test_spike.js    # 1000 users
+│
 ├── config/
-├── reports/
-├── screenshots/
-├── requirements.txt
-├── pytest.ini
-├── docker-compose.yml
-└── Jenkinsfile
+│   └── config.yaml               # URLs, browsers, devices, thresholds
+│
+├── scripts/                      # Reporting utilities
+│   ├── generate_combined_report.py  # Builds combined HTML/Excel/JSON reports
+│   └── generate_bug_report.py       # Extracts failures into XLS/HTML
+│
+├── reports/                      # Generated reports/artifacts
+│   ├── functional_test_report.html
+│   ├── load_test_report.html
+│   └── *.json / *.xlsx / allure-results/
+│
+├── screenshots/                  # Failure evidence
+│   └── *.png
+│
+├── Dockerfile                    # Containerized runner (optional)
+├── docker-compose.yml            # Selenium Grid + k6 samples (optional)
+├── Jenkinsfile                   # CI pipeline stages
+├── package.json                  # npm scripts to run k6 and reports
+├── pytest.ini                    # Pytest opts/markers/reporters
+├── requirements.txt              # Python dependencies
+└── README.md
 ```
-
-## Features
-- **Functional Testing**: Automated test cases for signup page functionality
-- **Device Testing**: Cross-device compatibility testing
-- **Load Testing**: Performance testing with baseline, stress, and spike scenarios
-- **Retry Mechanism**: Automatic retry on test failures
-- **Screenshot Capture**: Visual evidence on test failures
-- **CI/CD Integration**: DevOps pipeline configuration
-- **Comprehensive Reporting**: Detailed test reports with metrics
-
-## Test Scenarios
-
-### Functional Tests
-- Valid signup with all required fields
-- Invalid email format validation
-- Password strength validation
-- Required field validation
-- Duplicate email handling
-- Terms and conditions acceptance
-
-### Device Tests
-- Desktop browser testing
-- Mobile device testing
-- Tablet device testing
-- Cross-browser compatibility
-
-### Load Tests
-- **Baseline Test**: 10 concurrent users
-- **Stress Test**: 500 concurrent users  
-- **Spike Test**: Sudden jump to 1000 users
 
 ## Setup Instructions
 
 ### Prerequisites
-- Python 3.8+
-- Node.js 16+
-- Docker (optional)
-- Chrome/Firefox browsers
+- Python 3.8+ (3.11+ fine)
+- Node.js 16+ (for k6 via npm; or install native k6)
+- Chrome/Firefox/Edge browsers installed
+- Optional: Docker Desktop for Grid-based runs
 
-### Installation
+### Install
 ```bash
-# Clone the repository
+# Clone and enter
 git clone <repository-url>
 cd project
 
-# Install Python dependencies
+# Python deps
 pip install -r requirements.txt
 
-# Install Node.js dependencies for load testing
+# Node deps (for load tests)
 npm install
 
-# Set up environment variables
-cp .env.example .env
+# (optional) Env file
+copy env.example .env   # Windows
+# or: cp env.example .env
 ```
 
-### Running Tests
+## How to run
 
-#### Functional Tests
+### 1) Functional UI tests (Pytest + Selenium)
 ```bash
-# Run all functional tests
+# Full functional suite
 pytest tests/functional/ -v
 
-# Run with specific browser
-pytest tests/functional/ --browser=chrome
+# Specific test/class
+pytest tests/functional/tests/test_signup_functional.py::TestSignupFunctional::test_valid_signup -v
 
-# Run with retry mechanism
-pytest tests/functional/ --retry=3
-```
+# Choose browser (chrome|firefox|edge)
+pytest tests/functional/ -v --browser=chrome
 
-#### Device Tests
-```bash
-# Run device tests
+# Retry flaky tests
+pytest tests/functional/ -v --reruns=2 --reruns-delay=1
+
+# Device / responsive tests
 pytest tests/device/ -v
 ```
+Notes:
+- `webdriver-manager` auto-downloads drivers.
+- Headless/viewport/etc. are configurable via `config/config.yaml`.
 
-#### Load Tests
+### 2) Load tests (k6)
 ```bash
-# Run baseline test
+# Baseline (10 users)
 npm run load:baseline
 
-# Run stress test
+# Stress (500 users)
 npm run load:stress
 
-# Run spike test
+# Spike (1000 users)
 npm run load:spike
 ```
+Notes:
+- Targets `https://app-stg.swiftassess.com/Signup` by default (see k6 scripts / config).
+- Coordinate with stakeholders before heavy tests.
 
-## CI/CD Pipeline
-The project includes Jenkins pipeline configuration for automated testing:
-- Automated test execution on code changes
-- Parallel test execution
-- Test result reporting
-- Artifact collection
+### 3) Docker (optional)
+```bash
+# Start Selenium Grid nodes
+docker compose up -d selenium-hub selenium-chrome selenium-firefox
 
-## Reports
-- **Functional Test Report**: `reports/functional_test_report.html`
-- **Load Test Report**: `reports/load_test_report.html`
-- **Screenshots**: `screenshots/` directory
-- **Bug Report**: `reports/bug_report.xlsx`
+# Example test-run container
+docker compose up test-runner
+```
+
+## How to get the reports
+
+- Functional (HTML): `reports/functional_test_report.html`
+- Load (HTML): `reports/load_test_report.html`
+- Combined summary (HTML): `reports/combined_test_report.html` (via script below)
+- JSON summaries: `reports/*.json`
+- Bug report (Excel/HTML): generated by script below
+- Screenshots: `screenshots/`
+
+Generate and open reports:
+```bash
+# Combined report (functional + load)
+python scripts/generate_combined_report.py && start reports/combined_test_report.html
+
+# Bug report from latest JSONs
+python scripts/generate_bug_report.py && start reports/bug_report_*.html
+
+# Open specific reports (Windows examples)
+start reports/functional_test_report.html
+start reports/load_test_report.html
+```
+
+## How to run the pipeline
+
+### Option 1: Azure DevOps Pipeline (Recommended)
+
+The project includes a comprehensive Azure DevOps pipeline (`azure-pipelines.yml`) with the following stages:
+
+1) **Setup & Code Quality** - Environment setup, dependency installation, linting
+2) **Functional Tests** - Smoke, Regression, and All Functional tests (parallelized)
+3) **Device Tests** - Desktop, Mobile, Tablet, and Responsive tests (parallelized)
+4) **Load Tests** - Baseline (10 users), Stress (500 users), Spike (1000 users)
+5) **Reports** - Combined reports, Allure reports, bug reports, screenshots
+6) **Notification** - Build status and cleanup
+
+**Quick Start:**
+1. Connect repository to Azure DevOps
+2. Create new pipeline and select `azure-pipelines.yml`
+3. Run pipeline - it automatically triggers on push/PR
+4. View test results and download artifacts
+
+**For detailed setup instructions**, see [AZURE_DEVOPS_SETUP.md](AZURE_DEVOPS_SETUP.md)
+
+**Validate pipeline before deploying:**
+```bash
+python validate_pipeline.py
+```
+
+### Option 2: Jenkins Pipeline
+
+Pipeline stages in `Jenkinsfile`:
+1) Checkout
+2) Setup (Python/Node deps in parallel)
+3) Code Quality (lint/format checks)
+4) Functional Tests (smoke/regression) – parallelized
+5) Device Tests (desktop/mobile/tablet) – parallelized
+6) Load Tests (baseline, stress, spike)
+7) Reports (Allure/HTML/JSON) + Artifacts + Email notifications
+
+To use:
+- Create a Jenkins Pipeline job pointing to this repository.
+- Ensure agent has Python 3.8+, Node 16+, and optionally Docker/k6.
+- Build the job – artifacts are published under the job's build page.
+
+## Tools used
+
+- Pytest (test runner)
+- Selenium WebDriver (+ webdriver-manager) for browser automation
+- Page Object Model (POM) for maintainable UI tests
+- Pytest-HTML / Allure-ready outputs for reporting
+- Faker, pandas, openpyxl for data and Excel outputs
+- Grafana k6 for load/performance testing
+- Jenkins Pipeline for CI/CD
+- Docker + Selenium Grid (optional) for scalable/browser-parallel runs
 
 ## Best Practices Implemented
-- Page Object Model (POM) design pattern
-- BDD framework integration
+- POM design pattern
 - Retry mechanisms for flaky tests
 - Screenshot capture on failures
 - Comprehensive logging
 - Data-driven testing
-- Cross-browser testing
-- Mobile device testing
-- Performance monitoring
+- Cross-browser/device testing
+- Performance monitoring & thresholds
 
-## Contact
-For questions or issues, please contact the QA team.
+## Quickstart cheat-sheet
+```bash
+# 1) Install deps
+pip install -r requirements.txt && npm install
+
+# 2) Run functional tests
+pytest tests/functional/ -v
+
+# 3) Run load tests
+npm run load:baseline  # (then stress/spike)
+
+# 4) Generate reports
+python scripts/generate_combined_report.py && start reports\combined_test_report.html
+
+# 5) CI
+# Point a Jenkins Pipeline job at this repo and build
+```
