@@ -42,11 +42,6 @@ stages:
           - checkout: self
             displayName: 'Checkout Source Code'
             
-          # Fix PowerShell execution policy for self-hosted agent
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
           # For self-hosted agents, use pre-installed Python and Node.js
           # Comment these out if using Microsoft-hosted agents after grant approval
           # - task: UsePythonVersion@0
@@ -68,25 +63,27 @@ stages:
             displayName: 'Display Versions (Using Pre-installed Tools)'
             
           - script: |
-              pip install -r requirements.txt
-            displayName: 'Install Python Dependencies'
+              echo Skipping global Python dependency install in Setup stage
+            displayName: 'Skip Global Python Dependency Install'
             
           - script: |
               npm install
             displayName: 'Install Node.js Dependencies'
             
           - script: |
-              pip install pylint black || echo "Code quality tools installation attempted"
-            displayName: 'Install Code Quality Tools'
+              python -m venv "$(Agent.TempDirectory)\venv"
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install --upgrade pip
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install pylint black || echo "Code quality tools installation attempted"
+            displayName: 'Setup venv and Install Code Quality Tools'
             continueOnError: true
             
           - script: |
-              python -m pylint tests/ --disable=C0114,C0116 --exit-zero
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pylint tests/ --disable=C0114,C0116 --exit-zero
             displayName: 'Run Pylint'
             continueOnError: true
             
           - script: |
-              python -m black --check tests/ || echo "Black formatting check completed"
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m black --check tests/ || echo "Black formatting check completed"
             displayName: 'Run Black Format Check'
             continueOnError: true
 
@@ -104,21 +101,14 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-              
           - script: |
-              python -m pip install --upgrade pip
-              pip install -r requirements.txt
-            displayName: 'Install Dependencies'
+              python -m venv "$(Agent.TempDirectory)\venv"
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install --upgrade pip
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install -r requirements.txt
+            displayName: 'Create venv and install dependencies'
             
           - script: |
-              pytest tests/functional/ -m smoke --browser=chrome --headless ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/functional/ -m smoke --browser=chrome --headless ^
                 --html=reports/smoke_test_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -150,21 +140,14 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-              
           - script: |
-              python -m pip install --upgrade pip
-              pip install -r requirements.txt
-            displayName: 'Install Dependencies'
+              python -m venv "$(Agent.TempDirectory)\venv"
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install --upgrade pip
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install -r requirements.txt
+            displayName: 'Create venv and install dependencies'
             
           - script: |
-              pytest tests/functional/ -m regression --browser=chrome --headless ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/functional/ -m regression --browser=chrome --headless ^
                 --html=reports/regression_test_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -196,21 +179,14 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-              
           - script: |
-              python -m pip install --upgrade pip
-              pip install -r requirements.txt
-            displayName: 'Install Dependencies'
+              python -m venv "$(Agent.TempDirectory)\venv"
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install --upgrade pip
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install -r requirements.txt
+            displayName: 'Create venv and install dependencies'
             
           - script: |
-              pytest tests/functional/ -m functional --browser=chrome --headless ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/functional/ -m functional --browser=chrome --headless ^
                 --html=reports/functional_test_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -256,21 +232,14 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-              
           - script: |
-              python -m pip install --upgrade pip
-              pip install -r requirements.txt
-            displayName: 'Install Dependencies'
+              python -m venv "$(Agent.TempDirectory)\venv"
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install --upgrade pip
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install -r requirements.txt
+            displayName: 'Create venv and install dependencies'
             
           - script: |
-              pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_desktop_chrome_compatibility ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_desktop_chrome_compatibility ^
                 --html=reports/desktop_chrome_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -280,7 +249,7 @@ stages:
             continueOnError: true
             
           - script: |
-              pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_desktop_firefox_compatibility ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_desktop_firefox_compatibility ^
                 --html=reports/desktop_firefox_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -290,7 +259,7 @@ stages:
             continueOnError: true
             
           - script: |
-              pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_desktop_edge_compatibility ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_desktop_edge_compatibility ^
                 --html=reports/desktop_edge_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -321,21 +290,14 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-              
           - script: |
-              python -m pip install --upgrade pip
-              pip install -r requirements.txt
-            displayName: 'Install Dependencies'
+              python -m venv "$(Agent.TempDirectory)\venv"
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install --upgrade pip
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install -r requirements.txt
+            displayName: 'Create venv and install dependencies'
             
           - script: |
-              pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_mobile_iphone_compatibility ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_mobile_iphone_compatibility ^
                 --html=reports/mobile_iphone_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -345,7 +307,7 @@ stages:
             continueOnError: true
             
           - script: |
-              pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_mobile_android_compatibility ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_mobile_android_compatibility ^
                 --html=reports/mobile_android_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -355,7 +317,7 @@ stages:
             continueOnError: true
             
           - script: |
-              pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_touch_interactions ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_touch_interactions ^
                 --html=reports/touch_interactions_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -365,7 +327,7 @@ stages:
             continueOnError: true
             
           - script: |
-              pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_mobile_keyboard_handling ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_mobile_keyboard_handling ^
                 --html=reports/mobile_keyboard_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -396,21 +358,14 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-              
           - script: |
-              python -m pip install --upgrade pip
-              pip install -r requirements.txt
-            displayName: 'Install Dependencies'
+              python -m venv "$(Agent.TempDirectory)\venv"
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install --upgrade pip
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install -r requirements.txt
+            displayName: 'Create venv and install dependencies'
             
           - script: |
-              pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_tablet_ipad_compatibility ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_tablet_ipad_compatibility ^
                 --html=reports/tablet_ipad_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -441,21 +396,14 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-              
           - script: |
-              python -m pip install --upgrade pip
-              pip install -r requirements.txt
-            displayName: 'Install Dependencies'
+              python -m venv "$(Agent.TempDirectory)\venv"
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install --upgrade pip
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install -r requirements.txt
+            displayName: 'Create venv and install dependencies'
             
           - script: |
-              pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_responsive_design_validation ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_responsive_design_validation ^
                 --html=reports/responsive_design_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -465,7 +413,7 @@ stages:
             continueOnError: true
             
           - script: |
-              pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_cross_browser_consistency ^
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/device/test_device_compatibility.py::TestDeviceCompatibility::test_cross_browser_consistency ^
                 --html=reports/cross_browser_report.html ^
                 --self-contained-html ^
                 --json-report ^
@@ -521,13 +469,9 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '$(nodeVersion)'
+          - script: |
+              echo Using pre-installed Node.js
+            displayName: 'Use system Node.js'
               
           - script: |
               npm install
@@ -552,13 +496,9 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '$(nodeVersion)'
+          - script: |
+              echo Using pre-installed Node.js
+            displayName: 'Use system Node.js'
               
           - script: |
               npm install
@@ -583,17 +523,11 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '$(nodeVersion)'
-              
           - script: |
+              node --version
+              npm --version
               npm install
-            displayName: 'Install Dependencies'
+            displayName: 'Install Node.js Dependencies'
             
           - script: |
               npm run load:spike
@@ -623,18 +557,11 @@ stages:
         steps:
           - checkout: self
             
-          - powershell: |
-              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-            displayName: 'Set PowerShell Execution Policy'
-            
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-              
           - script: |
-              python -m pip install --upgrade pip
-              pip install -r requirements.txt
-            displayName: 'Install Dependencies'
+              python -m venv "$(Agent.TempDirectory)\venv"
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install --upgrade pip
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pip install -r requirements.txt
+            displayName: 'Create venv and install dependencies'
             
           # Download all artifacts from previous stages
           - task: DownloadPipelineArtifact@2
@@ -645,12 +572,12 @@ stages:
             continueOnError: true
             
           - script: |
-              python scripts/generate_combined_report.py
+              "$(Agent.TempDirectory)\venv\Scripts\python" scripts/generate_combined_report.py
             displayName: 'Generate Combined Report'
             continueOnError: true
             
           - script: |
-              python scripts/generate_bug_report.py
+              "$(Agent.TempDirectory)\venv\Scripts\python" scripts/generate_bug_report.py
             displayName: 'Generate Bug Report'
             continueOnError: true
             
