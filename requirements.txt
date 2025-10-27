@@ -24,7 +24,7 @@ requests==2.31.0
 httpx==0.25.2
 
 # Load Testing
-k6==0.0.1
+# Note: k6 is installed via npm (see package.json), not pip
 
 # Reporting & Logging
 allure-pytest==2.13.2
