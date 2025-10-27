@@ -94,6 +94,8 @@ stages:
     displayName: 'Functional Tests'
     dependsOn: Setup
     jobs:
+      # NOTE: Jobs run sequentially to work with single self-hosted agent
+      # Remove dependsOn lines below if you have multiple agents
       # Smoke Tests Job
       - job: Smoke_Tests
         displayName: 'Smoke Tests'
@@ -136,6 +138,7 @@ stages:
       # Regression Tests Job
       - job: Regression_Tests
         displayName: 'Regression Tests'
+        dependsOn: Smoke_Tests
         timeoutInMinutes: 60
         steps:
           - checkout: self
@@ -175,6 +178,7 @@ stages:
       # All Functional Tests Job
       - job: All_Functional_Tests
         displayName: 'All Functional Tests'
+        dependsOn: Regression_Tests
         timeoutInMinutes: 60
         steps:
           - checkout: self
@@ -225,6 +229,8 @@ stages:
     displayName: 'Device Compatibility Tests'
     dependsOn: Setup
     jobs:
+      # NOTE: Jobs run sequentially to work with single self-hosted agent
+      # Remove dependsOn lines below if you have multiple agents
       # Desktop Browser Tests Job
       - job: Desktop_Tests
         displayName: 'Desktop Browser Tests'
@@ -286,6 +292,7 @@ stages:
       # Mobile Device Tests Job
       - job: Mobile_Tests
         displayName: 'Mobile Device Tests'
+        dependsOn: Desktop_Tests
         timeoutInMinutes: 45
         steps:
           - checkout: self
@@ -354,6 +361,7 @@ stages:
       # Tablet Device Tests Job
       - job: Tablet_Tests
         displayName: 'Tablet Device Tests'
+        dependsOn: Mobile_Tests
         timeoutInMinutes: 45
         steps:
           - checkout: self
@@ -392,6 +400,7 @@ stages:
       # Responsive Design Tests Job
       - job: Responsive_Tests
         displayName: 'Responsive Design Tests'
+        dependsOn: Tablet_Tests
         timeoutInMinutes: 45
         steps:
           - checkout: self
@@ -462,6 +471,8 @@ stages:
         )
       )
     jobs:
+      # NOTE: Jobs run sequentially to work with single self-hosted agent
+      # Remove dependsOn lines below if you have multiple agents
       # Baseline Load Tests
       - job: Baseline_Load_Test
         displayName: 'Baseline Load Test (10 users)'
@@ -492,6 +503,7 @@ stages:
       # Stress Load Tests
       - job: Stress_Load_Test
         displayName: 'Stress Load Test (500 users)'
+        dependsOn: Baseline_Load_Test
         timeoutInMinutes: 20
         steps:
           - checkout: self
@@ -519,6 +531,7 @@ stages:
       # Spike Load Tests
       - job: Spike_Load_Test
         displayName: 'Spike Load Test (1000 users)'
+        dependsOn: Stress_Load_Test
         timeoutInMinutes: 15
         steps:
           - checkout: self
