@@ -42,6 +42,11 @@ stages:
           - checkout: self
             displayName: 'Checkout Source Code'
             
+          # Fix PowerShell execution policy for self-hosted agent
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
+            
           # For self-hosted agents, use pre-installed Python and Node.js
           # Comment these out if using Microsoft-hosted agents after grant approval
           # - task: UsePythonVersion@0
@@ -63,7 +68,7 @@ stages:
             displayName: 'Display Versions (Using Pre-installed Tools)'
             
           - script: |
-              pip install --user -r requirements.txt
+              pip install -r requirements.txt
             displayName: 'Install Python Dependencies'
             
           - script: |
@@ -76,12 +81,12 @@ stages:
             continueOnError: true
             
           - script: |
-              pylint tests/ --disable=C0114,C0116 --exit-zero
+              python -m pylint tests/ --disable=C0114,C0116 --exit-zero
             displayName: 'Run Pylint'
             continueOnError: true
             
           - script: |
-              black --check tests/ || echo "Black formatting check completed"
+              python -m black --check tests/ || echo "Black formatting check completed"
             displayName: 'Run Black Format Check'
             continueOnError: true
 
@@ -98,6 +103,10 @@ stages:
         timeoutInMinutes: 30
         steps:
           - checkout: self
+            
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
             
           - task: UsePythonVersion@0
             inputs:
@@ -141,6 +150,10 @@ stages:
         steps:
           - checkout: self
             
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
+            
           - task: UsePythonVersion@0
             inputs:
               versionSpec: '$(pythonVersion)'
@@ -182,6 +195,10 @@ stages:
         timeoutInMinutes: 60
         steps:
           - checkout: self
+            
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
             
           - task: UsePythonVersion@0
             inputs:
@@ -238,6 +255,10 @@ stages:
         timeoutInMinutes: 45
         steps:
           - checkout: self
+            
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
             
           - task: UsePythonVersion@0
             inputs:
@@ -299,6 +320,10 @@ stages:
         timeoutInMinutes: 45
         steps:
           - checkout: self
+            
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
             
           - task: UsePythonVersion@0
             inputs:
@@ -371,6 +396,10 @@ stages:
         steps:
           - checkout: self
             
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
+            
           - task: UsePythonVersion@0
             inputs:
               versionSpec: '$(pythonVersion)'
@@ -411,6 +440,10 @@ stages:
         timeoutInMinutes: 45
         steps:
           - checkout: self
+            
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
             
           - task: UsePythonVersion@0
             inputs:
@@ -488,6 +521,10 @@ stages:
         steps:
           - checkout: self
             
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
+            
           - task: NodeTool@0
             inputs:
               versionSpec: '$(nodeVersion)'
@@ -515,6 +552,10 @@ stages:
         steps:
           - checkout: self
             
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
+            
           - task: NodeTool@0
             inputs:
               versionSpec: '$(nodeVersion)'
@@ -541,6 +582,10 @@ stages:
         timeoutInMinutes: 15
         steps:
           - checkout: self
+            
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
             
           - task: NodeTool@0
             inputs:
@@ -577,6 +622,10 @@ stages:
         displayName: 'Generate Comprehensive Reports'
         steps:
           - checkout: self
+            
+          - powershell: |
+              Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+            displayName: 'Set PowerShell Execution Policy'
             
           - task: UsePythonVersion@0
             inputs:
