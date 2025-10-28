@@ -471,24 +471,36 @@ stages:
         steps:
           - checkout: self
             
-          - script: |
-              echo Checking for k6 installation...
-              where k6 || choco install k6 -y || echo "Installing k6 via Chocolatey..."
-            displayName: 'Install k6 Load Testing Tool'
-            continueOnError: true
+          - powershell: |
+              $k6Path = "$(Agent.TempDirectory)\k6"
+              $k6Exe = "$k6Path\k6.exe"
               
-          - script: |
-              k6 version || echo "k6 not found, attempting alternative installation..."
-              if not exist "C:\k6" (
-                powershell -Command "Invoke-WebRequest -Uri 'https://github.com/grafana/k6/releases/download/v0.47.0/k6-v0.47.0-windows-amd64.zip' -OutFile k6.zip"
-                powershell -Command "Expand-Archive -Path k6.zip -DestinationPath C:\k6 -Force"
-                set PATH=%PATH%;C:\k6
-              )
-            displayName: 'Verify or Download k6'
-            continueOnError: true
+              # Check if k6 already exists
+              if (Test-Path $k6Exe) {
+                  Write-Host "k6 already installed at $k6Exe"
+                  & $k6Exe version
+              } else {
+                  Write-Host "Downloading k6..."
+                  $k6Zip = "$(Agent.TempDirectory)\k6.zip"
+                  Invoke-WebRequest -Uri "https://github.com/grafana/k6/releases/download/v0.47.0/k6-v0.47.0-windows-amd64.zip" -OutFile $k6Zip
+                  
+                  Write-Host "Extracting k6..."
+                  Expand-Archive -Path $k6Zip -DestinationPath $k6Path -Force
+                  
+                  # Move exe from nested folder if needed
+                  $nestedExe = Get-ChildItem -Path $k6Path -Filter "k6.exe" -Recurse | Select-Object -First 1
+                  if ($nestedExe -and $nestedExe.FullName -ne $k6Exe) {
+                      Move-Item -Path $nestedExe.FullName -Destination $k6Exe -Force
+                  }
+                  
+                  Write-Host "k6 installed successfully"
+                  & $k6Exe version
+              }
+            displayName: 'Install k6 Load Testing Tool'
             
-          - script: |
-              k6 run tests/load/load_test_baseline.js --out json=reports/load_test_baseline_results.json
+          - powershell: |
+              $k6Exe = "$(Agent.TempDirectory)\k6\k6.exe"
+              & $k6Exe run tests/load/load_test_baseline.js --out json=reports/load_test_baseline_results.json
             displayName: 'Run Baseline Load Test (10 users)'
             continueOnError: true
             
@@ -507,13 +519,30 @@ stages:
         steps:
           - checkout: self
             
-          - script: |
-              where k6 || choco install k6 -y
+          - powershell: |
+              $k6Path = "$(Agent.TempDirectory)\k6"
+              $k6Exe = "$k6Path\k6.exe"
+              
+              # Check if k6 already exists from previous job
+              if (Test-Path $k6Exe) {
+                  Write-Host "Using existing k6 installation"
+                  & $k6Exe version
+              } else {
+                  Write-Host "Downloading k6..."
+                  $k6Zip = "$(Agent.TempDirectory)\k6.zip"
+                  Invoke-WebRequest -Uri "https://github.com/grafana/k6/releases/download/v0.47.0/k6-v0.47.0-windows-amd64.zip" -OutFile $k6Zip
+                  Expand-Archive -Path $k6Zip -DestinationPath $k6Path -Force
+                  $nestedExe = Get-ChildItem -Path $k6Path -Filter "k6.exe" -Recurse | Select-Object -First 1
+                  if ($nestedExe -and $nestedExe.FullName -ne $k6Exe) {
+                      Move-Item -Path $nestedExe.FullName -Destination $k6Exe -Force
+                  }
+                  & $k6Exe version
+              }
             displayName: 'Ensure k6 is Installed'
-            continueOnError: true
             
-          - script: |
-              k6 run tests/load/load_test_stress.js --out json=reports/load_test_stress_results.json
+          - powershell: |
+              $k6Exe = "$(Agent.TempDirectory)\k6\k6.exe"
+              & $k6Exe run tests/load/load_test_stress.js --out json=reports/load_test_stress_results.json
             displayName: 'Run Stress Load Test (500 users)'
             continueOnError: true
             
@@ -532,13 +561,30 @@ stages:
         steps:
           - checkout: self
             
-          - script: |
-              where k6 || choco install k6 -y
+          - powershell: |
+              $k6Path = "$(Agent.TempDirectory)\k6"
+              $k6Exe = "$k6Path\k6.exe"
+              
+              # Check if k6 already exists from previous job
+              if (Test-Path $k6Exe) {
+                  Write-Host "Using existing k6 installation"
+                  & $k6Exe version
+              } else {
+                  Write-Host "Downloading k6..."
+                  $k6Zip = "$(Agent.TempDirectory)\k6.zip"
+                  Invoke-WebRequest -Uri "https://github.com/grafana/k6/releases/download/v0.47.0/k6-v0.47.0-windows-amd64.zip" -OutFile $k6Zip
+                  Expand-Archive -Path $k6Zip -DestinationPath $k6Path -Force
+                  $nestedExe = Get-ChildItem -Path $k6Path -Filter "k6.exe" -Recurse | Select-Object -First 1
+                  if ($nestedExe -and $nestedExe.FullName -ne $k6Exe) {
+                      Move-Item -Path $nestedExe.FullName -Destination $k6Exe -Force
+                  }
+                  & $k6Exe version
+              }
             displayName: 'Ensure k6 is Installed'
-            continueOnError: true
             
-          - script: |
-              k6 run tests/load/load_test_spike.js --out json=reports/load_test_spike_results.json
+          - powershell: |
+              $k6Exe = "$(Agent.TempDirectory)\k6\k6.exe"
+              & $k6Exe run tests/load/load_test_spike.js --out json=reports/load_test_spike_results.json
             displayName: 'Run Spike Load Test (1000 users)'
             continueOnError: true
             
