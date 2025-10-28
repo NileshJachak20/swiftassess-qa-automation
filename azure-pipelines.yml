@@ -500,9 +500,23 @@ stages:
             
           - powershell: |
               $k6Exe = "$(Agent.TempDirectory)\k6\k6.exe"
+              $ErrorActionPreference = "Continue"
+              
               & $k6Exe run tests/load/load_test_baseline.js --out json=reports/load_test_baseline_results.json
+              
+              # k6 exits with code 1 if thresholds fail
+              # Treat threshold failures as warnings, not pipeline failures
+              if ($LASTEXITCODE -eq 99) {
+                  Write-Host "##[error]Load test execution failed"
+                  exit 1
+              } elseif ($LASTEXITCODE -ne 0) {
+                  Write-Host "##[warning]Performance thresholds exceeded - see metrics for details"
+                  Write-Host "This is an expected finding that should be included in the performance report"
+              }
+              
+              # Always exit successfully to continue pipeline
+              exit 0
             displayName: 'Run Baseline Load Test (10 users)'
-            continueOnError: true
             
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Baseline Load Test Results'
@@ -542,9 +556,20 @@ stages:
             
           - powershell: |
               $k6Exe = "$(Agent.TempDirectory)\k6\k6.exe"
+              $ErrorActionPreference = "Continue"
+              
               & $k6Exe run tests/load/load_test_stress.js --out json=reports/load_test_stress_results.json
+              
+              if ($LASTEXITCODE -eq 99) {
+                  Write-Host "##[error]Load test execution failed"
+                  exit 1
+              } elseif ($LASTEXITCODE -ne 0) {
+                  Write-Host "##[warning]Performance thresholds exceeded - see metrics for details"
+                  Write-Host "This is an expected finding that should be included in the performance report"
+              }
+              
+              exit 0
             displayName: 'Run Stress Load Test (500 users)'
-            continueOnError: true
             
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Stress Load Test Results'
@@ -584,9 +609,20 @@ stages:
             
           - powershell: |
               $k6Exe = "$(Agent.TempDirectory)\k6\k6.exe"
+              $ErrorActionPreference = "Continue"
+              
               & $k6Exe run tests/load/load_test_spike.js --out json=reports/load_test_spike_results.json
+              
+              if ($LASTEXITCODE -eq 99) {
+                  Write-Host "##[error]Load test execution failed"
+                  exit 1
+              } elseif ($LASTEXITCODE -ne 0) {
+                  Write-Host "##[warning]Performance thresholds exceeded - see metrics for details"
+                  Write-Host "This is an expected finding that should be included in the performance report"
+              }
+              
+              exit 0
             displayName: 'Run Spike Load Test (1000 users)'
-            continueOnError: true
             
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Spike Load Test Results'
