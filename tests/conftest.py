@@ -31,4 +31,3 @@ def browser(request):
 def headless(request):
     """Fixture to get headless mode from command line"""
     return request.config.getoption("--headless")
-
