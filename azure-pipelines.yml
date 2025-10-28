@@ -88,18 +88,15 @@ stages:
             continueOnError: true
 
   # ============================================================================
-  # Stage 2: Functional Tests
+  # Stage 2: Unit Tests (No Browser Required)
   # ============================================================================
-  - stage: Functional_Tests
-    displayName: 'Functional Tests (SKIPPED - Browser automation not configured)'
+  - stage: Unit_Tests
+    displayName: 'Unit Tests (Demo)'
     dependsOn: Setup
-    condition: false  # Skip browser automation tests on self-hosted agent
     jobs:
-      # NOTE: Jobs run sequentially to work with single self-hosted agent
-      # Remove dependsOn lines below if you have multiple agents
       # Smoke Tests Job
       - job: Smoke_Tests
-        displayName: 'Smoke Tests'
+        displayName: 'Smoke Unit Tests'
         timeoutInMinutes: 30
         steps:
           - checkout: self
@@ -111,9 +108,14 @@ stages:
             displayName: 'Create venv and install dependencies'
             
           - script: |
-              echo "Smoke tests require browser automation - skipping on self-hosted agent"
-              echo "See BROWSER_TESTS_SETUP.md for instructions to enable browser tests"
-            displayName: 'Skip Smoke Tests (Browser automation not configured)'
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/unit/ -m smoke ^
+                --html=reports/smoke_test_report.html ^
+                --self-contained-html ^
+                --json-report ^
+                --json-report-file=reports/smoke_results.json ^
+                --alluredir=reports/allure-results/smoke ^
+                -v
+            displayName: 'Run Smoke Unit Tests'
             continueOnError: true
             
           - task: PublishTestResults@2
@@ -133,7 +135,7 @@ stages:
               
       # Regression Tests Job
       - job: Regression_Tests
-        displayName: 'Regression Tests'
+        displayName: 'Regression Unit Tests'
         dependsOn: Smoke_Tests
         timeoutInMinutes: 60
         steps:
@@ -146,8 +148,14 @@ stages:
             displayName: 'Create venv and install dependencies'
             
           - script: |
-              echo "Regression tests require browser automation - skipping on self-hosted agent"
-            displayName: 'Skip Regression Tests (Browser automation not configured)'
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/unit/ -m regression ^
+                --html=reports/regression_test_report.html ^
+                --self-contained-html ^
+                --json-report ^
+                --json-report-file=reports/regression_results.json ^
+                --alluredir=reports/allure-results/regression ^
+                -v
+            displayName: 'Run Regression Unit Tests'
             continueOnError: true
             
           - task: PublishTestResults@2
@@ -165,9 +173,9 @@ stages:
               targetPath: 'reports'
               artifact: 'regression-test-reports'
               
-      # All Functional Tests Job
-      - job: All_Functional_Tests
-        displayName: 'All Functional Tests'
+      # All Unit Tests Job
+      - job: All_Unit_Tests
+        displayName: 'All Unit Tests'
         dependsOn: Regression_Tests
         timeoutInMinutes: 60
         steps:
@@ -180,8 +188,14 @@ stages:
             displayName: 'Create venv and install dependencies'
             
           - script: |
-              echo "Functional tests require browser automation - skipping on self-hosted agent"
-            displayName: 'Skip Functional Tests (Browser automation not configured)'
+              "$(Agent.TempDirectory)\venv\Scripts\python" -m pytest tests/unit/ ^
+                --html=reports/unit_test_report.html ^
+                --self-contained-html ^
+                --json-report ^
+                --json-report-file=reports/unit_results.json ^
+                --alluredir=reports/allure-results/unit ^
+                -v
+            displayName: 'Run All Unit Tests'
             continueOnError: true
             
           - task: PublishTestResults@2
@@ -536,7 +550,9 @@ stages:
   # ============================================================================
   - stage: Reports
     displayName: 'Generate & Publish Reports'
-    dependsOn: Setup
+    dependsOn: 
+      - Setup
+      - Unit_Tests
     condition: always()
     jobs:
       - job: Generate_Reports
