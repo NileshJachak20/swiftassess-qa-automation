@@ -457,9 +457,7 @@ stages:
   # ============================================================================
   - stage: Load_Tests
     displayName: 'Load & Performance Tests (SKIPPED - Dependencies disabled)'
-    dependsOn: 
-      - Functional_Tests
-      - Device_Tests
+    dependsOn: Setup
     condition: false  # Skip since dependencies are disabled
     jobs:
       # NOTE: Jobs run sequentially to work with single self-hosted agent
