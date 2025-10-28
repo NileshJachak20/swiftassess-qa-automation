@@ -615,21 +615,14 @@ stages:
               echo - Triggered By: $(Build.RequestedFor) >> test_summary.md
               echo. >> test_summary.md
               echo ## Test Stages >> test_summary.md
-              echo - ✅ Setup & Code Quality >> test_summary.md
-              echo - ✅ Functional Tests (Smoke, Regression, All) >> test_summary.md
-              echo - ✅ Device Tests (Desktop, Mobile, Tablet, Responsive) >> test_summary.md
-              echo - ✅ Load Tests (Baseline, Stress, Spike) >> test_summary.md
-              echo - ✅ Report Generation >> test_summary.md
+              echo - [PASS] Setup and Code Quality >> test_summary.md
+              echo - [PASS] Unit Tests (Demo) >> test_summary.md
+              echo - [SKIP] Browser Automation Tests (requires browser setup) >> test_summary.md
+              echo - [SKIP] Load Tests (requires browser setup) >> test_summary.md
+              echo - [PASS] Report Generation >> test_summary.md
               echo. >> test_summary.md
               echo ## Artifacts Published >> test_summary.md
-              echo - Smoke Test Reports >> test_summary.md
-              echo - Regression Test Reports >> test_summary.md
-              echo - Functional Test Reports >> test_summary.md
-              echo - Desktop Test Reports >> test_summary.md
-              echo - Mobile Test Reports >> test_summary.md
-              echo - Tablet Test Reports >> test_summary.md
-              echo - Responsive Test Reports >> test_summary.md
-              echo - Load Test Reports (Baseline, Stress, Spike) >> test_summary.md
+              echo - Unit Test Reports >> test_summary.md
               echo - Combined Reports >> test_summary.md
               echo - Screenshots >> test_summary.md
               echo. >> test_summary.md
